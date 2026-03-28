@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Returns Management Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0B1426;--navy2:#0F1E3A;--navy3:#162850;--blue:#1E6FD9;--blue2:#3B8BF5;--teal:#00C9A7;--teal2:rgba(0,201,167,0.12);--gold:#F5A623;--green:#22C55E;--purple:#A78BFA;--text:#E2E8F4;--muted:#7A8BA8;--faint:#3D506A;--border:rgba(255,255,255,0.07);--card:rgba(255,255,255,0.035);--card2:rgba(255,255,255,0.06);--row-sec:rgba(30,111,217,0.1);}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--navy);color:var(--text);min-height:100vh}
+.hdr{background:var(--navy2);border-bottom:1px solid var(--border);padding:0 36px;position:sticky;top:0;z-index:200}
+.hdr-inner{max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:62px;gap:16px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-ico{width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--teal));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff}
+.logo-name{font-size:15px;font-weight:600;color:#fff}.logo-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.main{max-width:1600px;margin:0 auto;padding:28px 36px 60px}
+.dbar{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:12px 18px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.dbar-l{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--green)}
+.ddot{width:7px;height:7px;border-radius:50%;background:var(--green); animation: pulse 1.5s infinite;}
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:28px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px 18px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--a,var(--blue))}
+.kpi-l{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.kpi-v{font-size:22px;font-weight:600;color:#fff;letter-spacing:-.5px;font-family:'DM Mono',monospace}
+.kpi-s{font-size:10px;color:var(--muted);margin-top:4px}
+.sec{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;margin:28px 0 14px;display:flex;align-items:center;gap:10px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+.wf{display:flex;align-items:center;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+.wf-lbl{font-size:11px;color:var(--muted);font-weight:500}
+.pill{padding:4px 13px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .12s;font-family:inherit}
+.pill.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.pill:hover:not(.on){border-color:var(--blue);color:var(--blue2)}
+.twrap{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+thead th{background:var(--navy2);padding:0;font-weight:600;text-align:center;white-space:nowrap}
+.thw{background:var(--navy3);color:var(--blue2);font-size:11px;font-weight:600;padding:9px 10px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-width:88px}
+.thwt{background:rgba(0,201,167,.1);color:var(--teal);font-size:11px;font-weight:600;padding:9px 10px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-width:88px}
+.ths{color:var(--muted);font-size:9.5px;font-weight:500;padding:5px 8px;border-right:1px solid var(--border);min-width:80px}
+.thl{text-align:left;color:#fff;font-size:11.5px;padding:9px 16px;min-width:200px}
+tbody tr{border-top:1px solid var(--border);transition:background .1s}
+tbody tr:hover td{background:rgba(255,255,255,.04)!important}
+tbody tr.sh td{background:var(--row-sec)!important}
+tbody tr.sp{height:5px;border-top:none}
+td{padding:9px 9px;text-align:right;border-right:1px solid var(--border);white-space:nowrap;font-family:'DM Mono',monospace;font-size:11px;color:var(--text)}
+td.lc{text-align:left;font-family:'DM Sans',sans-serif;font-size:12px;padding:9px 16px}
+td.lc.b{font-weight:600;color:#fff}
+td.tba{color:var(--gold);font-weight:600;font-family:'DM Sans',sans-serif;font-size:10px}
+td.tot{background:var(--teal2)!important;color:var(--teal);font-weight:600}
+td.z{color:var(--faint)}
+.foot{margin-top:40px;padding-top:20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.8}
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.hdr{padding:0 16px}.main{padding:16px 14px 40px}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-inner">
+    <div class="logo">
+      <div class="logo-ico">R</div>
+      <div><div class="logo-name">Returns Dashboard</div><div class="logo-sub">Operations &amp; Recovery Tracking</div></div>
+    </div>
+  </div>
+</header>
+
+<div id="dashboard">
+<div class="main">
+  <div class="dbar">
+    <div class="dbar-l"><div class="ddot" id="status-dot"></div><span id="dbar-txt">Fetching secure data...</span></div>
+    <div class="dbar-r">Live Report</div>
+  </div>
+  <div class="kpi-grid" id="kpis"></div>
+  <div class="sec">Returns Summary Table</div>
+  <div class="wf"><span class="wf-lbl">Filter by week:</span><button class="pill on" onclick="fw('all',this)">All Weeks</button><span id="wkp"></span></div>
+  <div class="twrap"><div class="tscroll"><table id="tbl"></table></div></div>
+  <div class="foot">* <b>Green Return</b> = tags contain "green return" &nbsp;|&nbsp; <b>Not Received</b> = Receiving = "Not received" &nbsp;|&nbsp; <b>DN Raised</b> = has Carrier Tracking number &nbsp;|&nbsp; <b>Liquidation</b> = Liquidation = "Yes" &nbsp;|&nbsp; <b>TBA</b> = fill manually once debit notes confirmed</div>
+</div>
+</div>
+
+<script>
+const RD=[
+  {l:'Total Returns Value',bold:true,type:'header'},
+  {l:'Green Return'},{l:'Not Received'},{l:null},
+  {l:'A Stock'},{l:'B, C, D Stock'},{l:'Not Graded'},{l:null},
+  {l:'DN Raised (Carriers)',bold:true,type:'header'},{l:'DN Accepted (A)',tba:true},{l:null},
+  {l:'Liquidation Value* (B)',bold:true,type:'header'},{l:null},
+  {l:'DN Factories',bold:true,type:'header'},{l:'DN Accepted (C)',tba:true},{l:null},
+  {l:'Recovery Value (A+B+C)',bold:true,type:'header'},{l:'Recovery %',pct:true},
+];
+let AW=[],AD={},ACW=[];
+const srt=ws=>ws.slice().sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+const gv=v=>(v===null||v===undefined||typeof v!=='number')?0:v;
+const tot=(l,k)=>ACW.reduce((s,w)=>s+gv(AD[w]?.[l]?.[k]),0);
+const fC=n=>n===0?'<td class="z">—</td>':`<td>£${n.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>`;
+const fU=n=>n===0?'<td class="z">—</td>':`<td>${Math.round(n).toLocaleString()}</td>`;
+const fT=(n,c)=>n===0?'<td class="tot z">—</td>':c?`<td class="tot">£${n.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>`:`<td class="tot">${Math.round(n).toLocaleString()}</td>`;
+
+window.onload = function() {
+  fetch('data.xlsx')
+    .then(response => {
+      if (!response.ok) throw new Error("File not found");
+      return response.arrayBuffer();
+    })
+    .then(buffer => {
+      try {
+        const wb = XLSX.read(buffer, {type: 'array'});
+        const sn = wb.SheetNames.find(n=>n.toLowerCase().includes('raw')||n.toLowerCase().includes('data'))||wb.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:''});
+        processData(rows);
+      } catch(e) {
+        showError("Error reading the Excel file format.");
+      }
+    })
+    .catch(error => {
+      showError("Awaiting data upload. No 'data.xlsx' file found on the server.");
+    });
+};
+
+function showError(msg) {
+    document.getElementById('dbar-txt').textContent = "⚠️ " + msg;
+    document.getElementById('status-dot').style.animation = 'none';
+    document.getElementById('status-dot').style.background = '#F5A623';
+}
+
+function processData(rows){
+  if(!rows||rows.length<2){showError('Data file is empty.');return;}
+  let hi=0,ds=1;
+  for(let i=0;i<Math.min(rows.length,6);i++){
+    const r=(rows[i]||[]).map(c=>String(c).toLowerCase());
+    if(r.some(c=>c.includes('week')||c.includes('cogs')||c.includes('order'))){hi=i;ds=i+1;break;}
+  }
+  const hdr=(rows[hi]||[]).map(c=>String(c).toLowerCase().replace(/_/g,' ').trim());
+  const find=(...terms)=>{for(const t of terms){const i=hdr.findIndex(c=>c.includes(t));if(i>=0)return i;}return -1;};
+  const cols={week:find('week number','week'),cogs:find('total cogs','cogs'),sales:find('total sales','sales value'),qty:find('item quantity','quantity','qty'),tags:find('tags'),recv:find('receiving'),grade:find('grading','grade'),dnfac:find('dn factory'),liq:find('liquidation'),trk:find('carrier tracking','tracking')};
+  
+  if(cols.week<0){showError('Cannot find a "Week Number" column in your data.');return;}
+  
+  const data={};
+  for(const row of rows.slice(ds)){
+    const wk=String(row[cols.week]||'').trim().toUpperCase();
+    if(!wk.match(/^W\d+$/))continue;
+    const c=parseFloat(String(row[cols.cogs]||'0').replace(/[£,\s]/g,''))||0;
+    const s=parseFloat(String(row[cols.sales]||'0').replace(/[£,\s]/g,''))||0;
+    const u=parseFloat(String(row[cols.qty]||'1').replace(/[,\s]/g,''))||1;
+    const tag=String(row[cols.tags]||'').toLowerCase();
+    const rec=String(row[cols.recv]||'').toLowerCase().trim();
+    const grd=String(row[cols.grade]||'').trim().toUpperCase();
+    const liq=String(row[cols.liq]||'').toLowerCase().trim();
+    const trk=String(row[cols.trk]||'').trim();
+    const dnf=cols.dnfac>=0?String(row[cols.dnfac]||'').trim():'';
+    if(!data[wk])data[wk]={};
+    const W=data[wk];
+    const add=(key,dc,ds2,du)=>{if(!W[key])W[key]={c:0,s:0,u:0};W[key].c+=dc;W[key].s+=ds2;W[key].u+=du;};
+    add('Total Returns Value',c,s,u);
+    if(tag.includes('green return'))add('Green Return',c,s,u);
+    if(rec==='not received')add('Not Received',c,s,u);
+    if(grd==='A')add('A Stock',c,s,u);
+    if(['B','C','D'].includes(grd))add('B, C, D Stock',c,s,u);
+    if(!grd)add('Not Graded',c,s,u);
+    if(trk)add('DN Raised (Carriers)',c,s,u);
+    if(liq==='yes')add('Liquidation Value* (B)',c,s,u);
+    if(dnf)add('DN Factories',c,s,u);
+    if(!W['Recovery Value (A+B+C)'])W['Recovery Value (A+B+C)']={c:0,s:0,u:0};
+  }
+  
+  AD=data;AW=srt(Object.keys(data));ACW=[...AW];
+  if(AW.length===0){showError('No week data found. Ensure values like W9, W10 exist.');return;}
+  
+  document.getElementById('dbar-txt').textContent='✓ Report active — '+AW.length+' weeks loaded';
+  document.getElementById('status-dot').style.animation='none';
+  bldPills();bldKPIs();bldTable();
+}
+
+function bldPills(){document.getElementById('wkp').innerHTML=AW.map(w=>`<button class="pill" onclick="fw('${w}',this)">${w}</button>`).join('');}
+function fw(sel,btn){document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));btn.classList.add('on');ACW=sel==='all'?[...AW]:[sel];bldKPIs();bldTable();}
+
+function bldKPIs(){
+  const fc=n=>`£${Math.round(n).toLocaleString('en-GB')}`;
+  const cards=[
+    {l:'Total COGS Value',  v:fc(tot('Total Returns Value','c')),              s:ACW.length+' week(s)',              a:'#1E6FD9'},
+    {l:'Total Sales Value', v:fc(tot('Total Returns Value','s')),              s:'Retail value of returns',          a:'#00C9A7'},
+    {l:'Units Returned',    v:tot('Total Returns Value','u').toLocaleString(),s:'Total items',                      a:'#F5A623'},
+    {l:'DN Raised Carriers',v:fc(tot('DN Raised (Carriers)','s')),             s:'Sales value — carrier claims',     a:'#E8445A'},
+    {l:'Green Returns',     v:tot('Green Return','u').toLocaleString(),        s:'Units tagged green return',        a:'#22C55E'},
+    {l:'Not Received',      v:tot('Not Received','u').toLocaleString(),        s:'Units not yet received',           a:'#A78BFA'},
+  ];
+  document.getElementById('kpis').innerHTML=cards.map(k=>`<div class="kpi" style="--a:${k.a}"><div class="kpi-l">${k.l}</div><div class="kpi-v">${k.v}</div><div class="kpi-s">${k.s}</div></div>`).join('');
+}
+
+function bldTable(){
+  const nc=ACW.length;
+  let th=`<thead><tr><th class="thl" rowspan="2">Particulars</th>${ACW.map(w=>`<th class="thw" colspan="3">${w}</th>`).join('')}<th class="thwt" colspan="3">Total</th></tr><tr>${ACW.map(()=>'<th class="ths">COGS (£)</th><th class="ths">Sales (£)</th><th class="ths">Units</th>').join('')}<th class="ths" style="background:rgba(0,201,167,.08);color:var(--teal)">COGS (£)</th><th class="ths" style="background:rgba(0,201,167,.08);color:var(--teal)">Sales (£)</th><th class="ths" style="background:rgba(0,201,167,.08);color:var(--teal)">Units</th></tr></thead>`;
+  let body='',ri=0;
+  for(const rd of RD){
+    if(!rd.l){body+=`<tr class="sp"><td colspan="${1+nc*3+3}" style="padding:0;height:5px"></td></tr>`;continue;}
+    const is=rd.type==='header';
+    const wc=ACW.map(w=>{const d=AD[w]?.[rd.l]||{c:0,s:0,u:0};if(rd.tba)return`<td class="tba">TBA</td><td class="tba">TBA</td><td class="tba">TBA</td>`;if(rd.pct)return`<td class="z">0%</td><td class="z">0%</td><td class="z">—</td>`;return fC(gv(d.c))+fC(gv(d.s))+fU(gv(d.u));}).join('');
+    let tc;
+    if(rd.tba)tc=`<td class="tot tba">TBA</td><td class="tot tba">TBA</td><td class="tot tba">TBA</td>`;
+    else if(rd.pct)tc=`<td class="tot z">0%</td><td class="tot z">0%</td><td class="tot z">—</td>`;
+    else tc=fT(tot(rd.l,'c'),true)+fT(tot(rd.l,'s'),true)+fT(tot(rd.l,'u'),false);
+    body+=`<tr class="${is?'sh':(ri%2===1?'alt':'')}"><td class="lc${rd.bold?' b':''}">${rd.l}</td>${wc}${tc}</tr>`;ri++;
+  }
+  document.getElementById('tbl').innerHTML=th+`<tbody>${body}</tbody>`;
+}
+</script>
+</body>
+</html>
