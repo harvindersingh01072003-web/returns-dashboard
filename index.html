@@ -99,7 +99,8 @@ const fU=n=>n===0?'<td class="z">—</td>':`<td>${Math.round(n).toLocaleString()
 const fT=(n,c)=>n===0?'<td class="tot z">—</td>':c?`<td class="tot">£${n.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>`:`<td class="tot">${Math.round(n).toLocaleString()}</td>`;
 
 window.onload = function() {
-  fetch('data.xlsx')
+  // Added a timestamp query so the browser never uses a cached version of the Excel file
+  fetch('data.xlsx?v=' + new Date().getTime())
     .then(response => {
       if (!response.ok) throw new Error("File not found");
       return response.arrayBuffer();
